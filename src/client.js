@@ -35,6 +35,10 @@ socket.onmessage = function(event) {
     gridStep = gridMsg.number;
     localGridModel = updateGrid(localGridModel)
   }
+  if (gridMsg.type === "fullGridUpdate") {
+    // gridStep = gridMsg.number;
+    localGridModel = updateGrid(gridMsg.grid)
+  }
 };
 
 renderer.domElement.addEventListener('click', createSand, { passive: true });

@@ -26,15 +26,19 @@ class SandSimulationServer {
     setInterval(() => {
       this.grid = updateGrid(this.grid);
       this.broadcastGridTimestep(this.gridStep++);
+      this.broadcastFullGridUpdate();
     }, 1000 / UPDATE_FREQUENCY_FPS);
   }
 
   broadcastFullGridUpdate() {
-    // this.party.broadcast(JSON.stringify(this.grid));
+    this.party.broadcast(JSON.stringify({
+      type: "fullGridUpdate",
+      grid: this.grid,
+    }));
   }
 
   onConnect(conn, ctx) {
-    // conn.send(JSON.stringify(this.grid));
+    conn.send(JSON.stringify(this.grid));
   }
 
   async onMessage(websocketMessage) {

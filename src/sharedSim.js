@@ -20,7 +20,14 @@ export function initGrid() {
   return grid;
 }
 
+export function gridIsFull(grid) {
+  return grid.every(row => row.every(cell => cell !== EMPTY));
+}
+
 export function updateGrid(inputGrid) {
+  if (gridIsFull(inputGrid)) {
+    return initGrid();
+  }
   const newGrid = inputGrid.map(row => [...row]);
   for (let y = 1; y < GRID_HEIGHT; y++) {
     for (let x = 0; x < GRID_WIDTH; x++) {
