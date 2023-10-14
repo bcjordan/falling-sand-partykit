@@ -1,0 +1,9 @@
+{
+  "name": "party-play",
+  "main": "src/server.js",
+  "compatibilityDate": "2023-10-13",
+  "serve": {
+    "path": "public",
+    "build": "src/client.js"
+  }
+}
