@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import PartySocket from "partysocket";
+import {updateGrid} from "./sharedSim";
 
 const GRID_WIDTH = 20;
 const GRID_HEIGHT = 20;
@@ -10,6 +11,8 @@ const OBSTACLE = 2;
 const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0, 100);
 camera.position.z = 10;
+
+let localGridModel = new Array(GRID_HEIGHT).fill(0).map(() => new Array(GRID_WIDTH).fill(EMPTY));
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -22,9 +25,16 @@ const socket = new PartySocket({
   room: "my-new-room",
 });
 
+let gridStep = 0;
+
 socket.onmessage = function(event) {
-  grid = JSON.parse(event.data);
-  render();
+  const gridMsg = JSON.parse(event.data);
+
+  if (gridMsg.type === "gridTimestep") {
+    console.log(gridMsg.number);
+    gridStep = gridMsg.number;
+    localGridModel = updateGrid(localGridModel)
+  }
 };
 
 renderer.domElement.addEventListener('click', createSand, { passive: true });
@@ -64,7 +74,6 @@ renderer.domElement.addEventListener('touchend', () => {
 });
 
 function createSand(event) {
-
   const rect = renderer.domElement.getBoundingClientRect();
   const x = ((event.clientX - rect.left) / renderer.domElement.clientWidth) * 2 - 1;
   const y = -((event.clientY - rect.top) / renderer.domElement.clientHeight) * 2 + 1;
@@ -76,19 +85,11 @@ function createSand(event) {
   const gridY = Math.floor(-mousePos.y + GRID_HEIGHT / 2);
 
   if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
-    grid[gridY][gridX] = SAND;
-    socket.send(JSON.stringify({type: "addSand", x: gridX, y: gridY}));
-  }
-
-  if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
-    console.log(y, gridY, gridX)
-    grid[gridY][gridX] = SAND;
-    console.log("snad")
-    socket.send(JSON.stringify({type: "addSand", x: gridX, y: gridY}));
+    localGridModel[gridY][gridX] = SAND;
+    socket.send(JSON.stringify({type: "addSand", x: gridX, y: gridY, number: gridStep}));
   }
 }
 
-let grid = new Array(GRID_HEIGHT).fill(0).map(() => new Array(GRID_WIDTH).fill(EMPTY));
 
 for (let y = 0; y < GRID_HEIGHT; y++) {
   for (let x = 0; x < GRID_WIDTH; x++) {
@@ -108,15 +109,15 @@ function getColor(cellType) {
   }
 }
 
-function render() {
+function renderLoop() {
   for (let y = 0; y < GRID_HEIGHT; y++) {
     for (let x = 0; x < GRID_WIDTH; x++) {
       const index = y * GRID_WIDTH + x;
-      scene.children[index].material.color.setHex(getColor(grid[y][x]));
+      scene.children[index].material.color.setHex(getColor(localGridModel[y][x]));
     }
   }
   renderer.render(scene, camera);
-  requestAnimationFrame(render);
+  requestAnimationFrame(renderLoop);
 }
 
-render();
+renderLoop();
