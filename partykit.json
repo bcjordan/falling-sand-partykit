@@ -4,6 +4,6 @@
   "compatibilityDate": "2023-10-13",
   "serve": {
     "path": "public",
-    "build": "src/client.js"
+    "build": "src/client-v2.js"
   }
 }

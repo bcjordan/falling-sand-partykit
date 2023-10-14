@@ -2,9 +2,11 @@
 
 export const GRID_WIDTH = 20;
 export const GRID_HEIGHT = 20;
+
 export const EMPTY = 0;
 export const SAND = 1;
 export const OBSTACLE = 2;
+export const ALL_CELLS = [EMPTY, SAND, OBSTACLE];
 
 export function initGrid() {
   const grid = new Array(GRID_HEIGHT).fill(0).map(() => new Array(GRID_WIDTH).fill(EMPTY));
