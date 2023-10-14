@@ -1,4 +1,4 @@
-import {initGrid, updateGrid, SAND, ALL_CELLS,} from "./sharedSim";
+import {initGrid, updateGrid, SAND, ALL_TYPES,} from "./sharedSim";
 
 const {Party, Server, Connection, ConnectionContext} = require("partykit/server");
 
@@ -50,9 +50,9 @@ class SandSimulationServer {
 
     if (event.type === "addSand" || event.type === "updateCell") {
       const { x, y, cellType } = event;
-      console.log(`Received ${event.type} event: ${x}, ${y}, ${cellType}`);
+      // console.log(`Received ${event.type} event: ${x}, ${y}, ${cellType}`);
       let invalidCoords = y >= this.grid.length || x >= this.grid[0].length;
-      let invalidCellType = cellType >= ALL_CELLS.length;
+      let invalidCellType = cellType >= ALL_TYPES.length;
       if (invalidCoords || invalidCellType) {
         return;
       }

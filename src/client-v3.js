@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import PartySocket from "partysocket";
-import {updateGrid} from "./sharedSim";
+import {ALL_TYPES, updateGrid} from "./sharedSim";
 
 const GRID_WIDTH = 20;
 const GRID_HEIGHT = 20;
@@ -49,6 +49,11 @@ socket.onmessage = function(event) {
     localGridModel = updateGrid(gridMsg.grid)
   }
 };
+
+document.getElementById('currentTool').addEventListener('click', () => {
+  currentTool = (currentTool + 1) % ALL_TYPES.length;
+  updateToolDisplay();
+});
 
 document.addEventListener('keydown', (event) => {
   switch(event.key) {
