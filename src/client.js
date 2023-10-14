@@ -14,6 +14,15 @@ camera.position.z = 10;
 
 let localGridModel = new Array(GRID_HEIGHT).fill(0).map(() => new Array(GRID_WIDTH).fill(EMPTY));
 
+let currentTool = SAND; // Default tool
+const tools = {
+  [SAND]: 'Sand',
+  [EMPTY]: 'Air',
+  [OBSTACLE]: 'Obstacle'
+};
+updateToolDisplay();
+
+
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
@@ -40,6 +49,28 @@ socket.onmessage = function(event) {
     localGridModel = updateGrid(gridMsg.grid)
   }
 };
+
+document.addEventListener('keydown', (event) => {
+  switch(event.key) {
+    case '1':
+      currentTool = SAND;
+      break;
+    case '2':
+      currentTool = EMPTY;
+      break;
+    case '3':
+      currentTool = OBSTACLE;
+      break;
+  }
+  updateToolDisplay();
+});
+
+function updateToolDisplay() {
+  const toolDisplay = document.getElementById('currentTool');
+  toolDisplay.textContent = `Current Tool: ${tools[currentTool]}`;
+}
+
+
 
 renderer.domElement.addEventListener('click', createSand, { passive: true });
 
@@ -89,8 +120,8 @@ function createSand(event) {
   const gridY = Math.floor(-mousePos.y + GRID_HEIGHT / 2);
 
   if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
-    localGridModel[gridY][gridX] = SAND;
-    socket.send(JSON.stringify({type: "addSand", x: gridX, y: gridY, number: gridStep}));
+    localGridModel[gridY][gridX] = currentTool === EMPTY ? EMPTY : currentTool;
+    socket.send(JSON.stringify({type: currentTool === SAND ? "addSand" : "updateCell", x: gridX, y: gridY, cellType: currentTool, number: gridStep}));
   }
 }
 

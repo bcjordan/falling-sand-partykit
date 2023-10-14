@@ -48,12 +48,9 @@ class SandSimulationServer {
 
     const event = JSON.parse(websocketMessage);
 
-    // Handle the creation of sand particles on the grid
-    if (event.type === "addSand") {
-      const {x, y} = event;
-      this.grid[y][x] = SAND;
-      // this.broadcastGrid();
-      // this.party.storage.put(`item:${x}_${y}`, SAND);
+    if (event.type === "addSand" || event.type === "updateCell") {
+      const { x, y, cellType } = event;
+      this.grid[y][x] = cellType;
     }
   }
 
