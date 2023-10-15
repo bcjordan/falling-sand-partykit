@@ -1,15 +1,27 @@
 import * as THREE from 'three';
 import PartySocket from "partysocket";
-import {ALL_TYPES, updateGrid} from "./sharedSim";
+import {ALL_TYPES, updateGrid, GRID_WIDTH, GRID_HEIGHT} from "./sharedSim";
+import FastIntegerCompression from "fastintcompression";
 
-const GRID_WIDTH = 20;
-const GRID_HEIGHT = 20;
-const CELL_SIZE = 1;
+
 const EMPTY = 0;
 const SAND = 1;
 const OBSTACLE = 2;
 const scene = new THREE.Scene();
-const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0, 100);
+
+const aspectRatio = window.innerWidth / window.innerHeight;
+const cameraViewHeight = 20;
+const cameraViewWidth = cameraViewHeight * aspectRatio;
+
+const camera = new THREE.OrthographicCamera(
+  -cameraViewWidth / 2,
+  cameraViewWidth / 2,
+  cameraViewHeight / 2,
+  -cameraViewHeight / 2,
+  0,
+  100
+);
+
 camera.position.z = 10;
 
 let localGridModel = new Array(GRID_HEIGHT).fill(0).map(() => new Array(GRID_WIDTH).fill(EMPTY));
@@ -25,6 +37,21 @@ updateToolDisplay();
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+
+window.addEventListener('resize', () => {
+  const aspectRatio = window.innerWidth / window.innerHeight;
+  const cameraViewHeight = 20; // This can be your choice of the height of the camera's view
+  const cameraViewWidth = cameraViewHeight * aspectRatio;
+
+  camera.left = -cameraViewWidth / 2;
+  camera.right = cameraViewWidth / 2;
+  camera.top = cameraViewHeight / 2;
+  camera.bottom = -cameraViewHeight / 2;
+
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
 document.body.appendChild(renderer.domElement);
 
 // Connect to socket server
@@ -39,16 +66,46 @@ let gridStep = 0;
 socket.onmessage = function(event) {
   const gridMsg = JSON.parse(event.data);
 
-  if (gridMsg.type === "gridTimestep") {
-    console.log(gridMsg.number);
-    gridStep = gridMsg.number;
-    localGridModel = updateGrid(localGridModel)
-  }
   if (gridMsg.type === "fullGridUpdate") {
-    // gridStep = gridMsg.number;
-    localGridModel = updateGrid(gridMsg.grid)
+    const base64Data = gridMsg.data;
+    const compressedData = base64ToArrayBuffer(base64Data);
+    const flatGrid = FastIntegerCompression.uncompress(new Uint8Array(compressedData));
+    localGridModel = reshapeGrid(flatGrid);
   }
 };
+
+function base64ToArrayBuffer(base64) {
+  const binary_string = window.atob(base64);
+  const len = binary_string.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binary_string.charCodeAt(i);
+  }
+  return bytes.buffer;
+}
+
+
+
+function reshapeGrid(flatGrid) {
+  const newGrid = [];
+  for (let i = 0; i < GRID_HEIGHT; i++) {
+    newGrid.push(flatGrid.slice(i * GRID_WIDTH, (i + 1) * GRID_WIDTH));
+  }
+  return newGrid;
+}
+
+function convertBitmapsToGrid(bitmaps) {
+  const newGrid = new Array(GRID_HEIGHT).fill(0).map(() => new Array(GRID_WIDTH).fill(EMPTY));
+  for (let type of Object.keys(bitmaps)) {
+    for (const value of bitmaps[type]) {
+      const y = Math.floor(value / GRID_WIDTH);
+      const x = value % GRID_WIDTH;
+      newGrid[y][x] = parseInt(type);
+    }
+  }
+  return newGrid;
+}
+
 
 document.getElementById('currentTool').addEventListener('click', () => {
   currentTool = (currentTool + 1) % ALL_TYPES.length;
@@ -126,20 +183,26 @@ function createSand(event) {
 
   if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
     localGridModel[gridY][gridX] = currentTool === EMPTY ? EMPTY : currentTool;
-    socket.send(JSON.stringify({type: currentTool === SAND ? "addSand" : "updateCell", x: gridX, y: gridY, cellType: currentTool, number: gridStep}));
+    socket.send(JSON.stringify({type: "updateCell", x: gridX, y: gridY, cellType: currentTool, number: gridStep}));
   }
 }
 
+const canvasWidth = 20; // The width of the area in which you want to fit the grid. Adjust this value as needed.
+const canvasHeight = 20; // The height of the area in which you want to fit the grid. Adjust this value as needed.
+
+const CELL_WIDTH = canvasWidth / GRID_WIDTH;
+const CELL_HEIGHT = canvasHeight / GRID_HEIGHT;
 
 for (let y = 0; y < GRID_HEIGHT; y++) {
   for (let x = 0; x < GRID_WIDTH; x++) {
-    const cubeGeometry = new THREE.BoxGeometry(CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    const cubeGeometry = new THREE.BoxGeometry(CELL_WIDTH, CELL_HEIGHT, CELL_WIDTH); // assuming depth = width
     const cubeMaterial = new THREE.MeshBasicMaterial({ color: getColor(EMPTY) });
     const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    cube.position.set(x - GRID_WIDTH / 2 + 0.5, GRID_HEIGHT / 2 - y - 0.5, 0);
+    cube.position.set(x * CELL_WIDTH - canvasWidth / 2 + CELL_WIDTH / 2, canvasHeight / 2 - y * CELL_HEIGHT - CELL_HEIGHT / 2, 0);
     scene.add(cube);
   }
 }
+
 
 function getColor(cellType) {
   switch(cellType) {

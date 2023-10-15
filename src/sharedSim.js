@@ -1,7 +1,7 @@
 
 
-export const GRID_WIDTH = 20;
-export const GRID_HEIGHT = 20;
+export const GRID_WIDTH = 50;
+export const GRID_HEIGHT = 50;
 
 export const EMPTY = 0;
 export const SAND = 1;
@@ -13,11 +13,11 @@ export function initGrid() {
   for (let x = 0; x < GRID_WIDTH; x++) {
     grid[GRID_HEIGHT - 1][x] = OBSTACLE;
   }
-  for (let x = 5; x < 15; x++) {
-    grid[2][x] = SAND;
+  for (let x = 5; x < GRID_WIDTH; x++) {
+    grid[19][x] = SAND;
   }
   for (let x = 0; x < GRID_WIDTH; x++) {
-    grid[11][x] = OBSTACLE;
+    grid[20][x] = OBSTACLE;
   }
   return grid;
 }

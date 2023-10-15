@@ -1,8 +1,8 @@
 import {initGrid, updateGrid, SAND, ALL_TYPES,} from "./sharedSim";
+import FastIntegerCompression from "fastintcompression";
+const { Party, Server, Connection, ConnectionContext } = require("partykit/server");
 
-const {Party, Server, Connection, ConnectionContext} = require("partykit/server");
-
-const UPDATE_FREQUENCY_FPS = 10;
+const UPDATE_FREQUENCY_FPS = 30;
 
 // * @implements {Server}
 class SandSimulationServer {
@@ -31,14 +31,30 @@ class SandSimulationServer {
   }
 
   broadcastFullGridUpdate() {
-    this.party.broadcast(JSON.stringify({
-      type: "fullGridUpdate",
-      grid: this.grid,
-    }));
+    let input = this.flattenGrid(this.grid);
+    const compressedGrid = FastIntegerCompression.compress(input);
+    const base64CompressedGrid = this.arrayBufferToBase64(compressedGrid);
+    this.party.broadcast(JSON.stringify({ type: "fullGridUpdate", data: base64CompressedGrid }));
   }
 
+  flattenGrid(grid) {
+    return grid.reduce((acc, row) => acc.concat(row), []);
+  }
+
+  arrayBufferToBase64(buffer) {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
+
+
   onConnect(conn, ctx) {
-    conn.send(JSON.stringify(this.grid));
+    // const compressedGrid = FastIntegerCompression.compress(this.flattenGrid(this.grid));
+    // conn.send(JSON.stringify({ type: "fullGridUpdate", data: this.flattenGrid(this.grid) }));
   }
 
   async onMessage(websocketMessage) {
