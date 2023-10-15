@@ -172,14 +172,17 @@ renderer.domElement.addEventListener('touchend', () => {
 
 function createSand(event) {
   const rect = renderer.domElement.getBoundingClientRect();
+
+  // Normalized device coordinates
   const x = ((event.clientX - rect.left) / renderer.domElement.clientWidth) * 2 - 1;
   const y = -((event.clientY - rect.top) / renderer.domElement.clientHeight) * 2 + 1;
 
   const mousePos = new THREE.Vector3(x, y, 0.5);
   mousePos.unproject(camera);
 
-  const gridX = Math.floor(mousePos.x + GRID_WIDTH / 2);
-  const gridY = Math.floor(-mousePos.y + GRID_HEIGHT / 2);
+  // Convert from world coordinates to grid coordinates
+  const gridX = Math.floor((mousePos.x + canvasWidth / 2) / CELL_WIDTH);
+  const gridY = Math.floor((canvasHeight / 2 - mousePos.y) / CELL_HEIGHT);
 
   if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
     localGridModel[gridY][gridX] = currentTool === EMPTY ? EMPTY : currentTool;
