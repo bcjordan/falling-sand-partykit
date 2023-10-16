@@ -8,9 +8,11 @@
   },
   "dependencies": {
     "fastintcompression": "^0.1.0",
+    "lil-gui": "^0.18.2",
     "partysocket": "0.0.10",
     "roaring": "^2.2.0",
     "roaring-wasm": "^1.0.0",
+    "stats.js": "^0.17.0",
     "three": "^0.157.0"
   },
   "devDependencies": {

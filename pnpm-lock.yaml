@@ -2,18 +2,22 @@ lockfileVersion: 5.4
 
 specifiers:
   fastintcompression: ^0.1.0
+  lil-gui: ^0.18.2
   partykit: 0.0.30
   partysocket: 0.0.10
   roaring: ^2.2.0
   roaring-wasm: ^1.0.0
+  stats.js: ^0.17.0
   three: ^0.157.0
   typescript: ^5.2.2
 
 dependencies:
   fastintcompression: 0.1.0
+  lil-gui: 0.18.2
   partysocket: 0.0.10
   roaring: 2.2.0
   roaring-wasm: 1.0.0
+  stats.js: 0.17.0
   three: 0.157.0
 
 devDependencies:
@@ -884,6 +888,10 @@ packages:
     dev: false
     optional: true
 
+  /lil-gui/0.18.2:
+    resolution: {integrity: sha512-DgdrLy3/KGC0PiQLKgOcJMPItP4xY4iWgJ9+91Zaxfr8GCTmMps05QS9w9jW7yspILlbscbquwjOwxmWnSx5Uw==}
+    dev: false
+
   /loose-envify/1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
@@ -1385,6 +1393,10 @@ packages:
       as-table: 1.0.55
       get-source: 2.0.12
     dev: true
+
+  /stats.js/0.17.0:
+    resolution: {integrity: sha512-hNKz8phvYLPEcRkeG1rsGmV5ChMjKDAWU7/OJJdDErPBNChQXxCo3WZurGpnWc6gZhAzEPFad1aVgyOANH1sMw==}
+    dev: false
 
   /stoppable/1.1.0:
     resolution: {integrity: sha512-KXDYZ9dszj6bzvnEMRYvxgeTHU74QBFL54XKtP3nyMuJ81CFYtABZ3bAzL2EdFUaEwJOBOgENyFj3R7oTzDyyw==}
